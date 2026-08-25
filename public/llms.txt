@@ -1,0 +1,19 @@
+# BlancoByte
+
+BlancoByte builds private, secure database and analytics solutions. Everything runs inside your own network, on-premise or in your own cloud, so your data never leaves the boundaries you control.
+
+## What we do
+- Private, in-network analytics and reporting
+- Database consulting: architecture, deployment, performance tuning, migration
+- Real time insight, in plain language or SQL
+
+## Pages
+- Overview: /overview
+- Consulting: /consulting
+- Docs: /docs
+- Blog and Knowledge Base: /blog
+- Contact: /contact
+
+## Contact
+support@blancobyte.com
+Santpoort-Noord, Netherlands

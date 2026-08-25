@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>BlancoByte Blog Editor</title>
+<style>
+  :root {
+    --bg: #0A1735; --bg-sunken: #060E22; --bg-elevated: #13224A; --bg-hover: #1A2C5C;
+    --border: #24345f; --border-soft: #1c2a4d;
+    --text: #EAF1FF; --text-secondary: #BCC9E8; --text-muted: #8697BE;
+    --accent: #2E6BF5; --accent-hover: #5A8CFF; --accent-soft: rgba(46,107,245,0.14); --cta: #F5A623; --cta-hover: #FFB84D;
+    --danger: #f87171; --success: #34d399; --warn: #F5A623;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --sans: "Hanken Grotesk", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body { font-family: var(--sans); background: var(--bg); color: var(--text);
+    display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  a { color: var(--accent); }
+
+  header { display: flex; align-items: center; gap: 14px; padding: 10px 16px;
+    border-bottom: 1px solid var(--border); background: var(--bg-sunken); flex-shrink: 0; }
+  header .brand { font-weight: 800; letter-spacing: -0.02em; font-size: 15px; }
+  header .brand span { color: var(--accent); }
+  header .spacer { flex: 1; }
+  .btn { font-family: var(--sans); font-size: 13px; font-weight: 600; border: 1px solid var(--border);
+    background: var(--bg-elevated); color: var(--text-secondary); padding: 8px 14px; border-radius: 9px;
+    cursor: pointer; transition: all .15s ease; white-space: nowrap; }
+  .btn:hover { border-color: var(--accent); color: var(--text); }
+  .btn-primary { background: var(--cta); border-color: var(--cta); color: #0A1735; }
+  .btn-primary:hover { background: var(--cta-hover); border-color: var(--cta-hover); color: #0A1735; }
+  .btn-ghost { background: transparent; }
+
+  /* Top details bar (full width, collapsible) */
+  .details { background: var(--bg-sunken); border-bottom: 1px solid var(--border); flex-shrink: 0;
+    max-height: 46vh; overflow-y: auto; }
+  .details-toggle { width: 100%; display: flex; align-items: center; gap: 9px; cursor: pointer;
+    background: transparent; border: 0; color: var(--text-muted); font-family: var(--sans);
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 11px 16px; text-align: left; }
+  .details-toggle:hover { color: var(--text-secondary); }
+  .details-toggle .chev { font-size: 12px; transition: transform .2s; }
+  .details.collapsed .details-toggle .chev { transform: rotate(-90deg); }
+  .details-summary { margin-left: auto; font-weight: 500; letter-spacing: 0; text-transform: none;
+    color: var(--text-muted); font-size: 12px; overflow: hidden; white-space: nowrap;
+    text-overflow: ellipsis; max-width: 55%; }
+  .details-inner { padding: 4px 16px 16px; display: grid; gap: 14px 16px;
+    grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: end; }
+  .details.collapsed .details-inner { display: none; }
+  .field { min-width: 0; display: flex; flex-direction: column; }
+  .field.span2 { grid-column: span 2; }
+  .field.span4 { grid-column: 1 / -1; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 5px; }
+  .field label .opt { color: var(--text-muted); font-weight: 400; }
+  .field input[type=text], .field input[type=date], .field textarea {
+    width: 100%; font-family: var(--sans); font-size: 13px; background: var(--bg-elevated);
+    border: 1px solid var(--border); color: #f4f5f7; border-radius: 8px; padding: 0 11px;
+    height: 38px; outline: none; transition: border-color .15s; }
+  .field input:focus, .field textarea:focus { border-color: var(--accent); }
+  .field textarea { resize: vertical; min-height: 38px; height: 64px; line-height: 1.45; padding: 8px 11px; white-space: normal; overflow: auto; }
+  .counter { font-size: 11px; color: var(--text-muted); margin-top: 4px; text-align: right; }
+  .counter.warn { color: var(--warn); }
+  .counter.bad { color: var(--danger); }
+  .check { display: flex; align-items: center; gap: 8px; height: 38px; }
+  .check input { width: 15px; height: 15px; accent-color: var(--accent); }
+  .check label { margin: 0; font-weight: 500; color: var(--text-secondary); }
+  .hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+  .slug-preview { font-family: var(--mono); font-size: 11px; color: var(--accent); word-break: break-all; margin-top: 4px; }
+
+  /* Main work area */
+  .wrap { display: flex; flex: 1; min-height: 0; }
+  .col { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+  .col-editor { flex: 1; border-right: 1px solid var(--border); }
+  .col-preview { flex: 1; background: var(--bg-sunken); }
+  .col-head { padding: 9px 14px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--text-muted); border-bottom: 1px solid var(--border-soft);
+    flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+  .col-head .right { margin-left: auto; font-weight: 600; letter-spacing: 0; text-transform: none; }
+
+  /* Toolbar */
+  .toolbar { display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 8px;
+    border-bottom: 1px solid var(--border-soft); flex-shrink: 0; background: var(--bg); }
+  .tb { font-family: var(--mono); font-size: 12px; min-width: 30px; height: 30px; padding: 0 8px;
+    border: 1px solid transparent; background: transparent; color: var(--text-secondary);
+    border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all .12s; }
+  .tb:hover { background: var(--bg-hover); color: var(--text); }
+  .tb-sep { width: 1px; background: var(--border-soft); margin: 4px 4px; }
+
+  .editor-area { flex: 1; width: 100%; border: 0; outline: 0; resize: none; background: var(--bg);
+    color: #f4f5f7; font-family: var(--mono); font-size: 13.5px; line-height: 1.7; padding: 18px 22px; min-height: 0; }
+
+  /* Preview */
+  .preview { flex: 1; overflow-y: auto; padding: 24px 28px 60px; min-height: 0; }
+  .preview-cover { width: 100%; aspect-ratio: 1200/630; object-fit: cover; border-radius: 12px;
+    margin-bottom: 20px; border: 1px solid var(--border); }
+  .preview h1.post-title { font-size: 34px; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 8px; line-height: 1.15; }
+  .preview .post-meta { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+  .preview .post-tags { margin-bottom: 24px; display: flex; gap: 7px; flex-wrap: wrap; }
+  .preview .post-tags span { font-size: 11px; font-family: var(--mono); color: var(--accent);
+    background: var(--accent-soft); border: 1px solid var(--border); padding: 3px 9px; border-radius: 20px; }
+  .preview h2 { font-size: 26px; font-weight: 700; margin: 32px 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--border-soft); }
+  .preview h3 { font-size: 21px; font-weight: 600; margin: 26px 0 10px; }
+  .preview h4 { font-size: 17px; font-weight: 600; margin: 20px 0 7px; }
+  .preview p { line-height: 1.75; margin: 0 0 15px; color: var(--text-secondary); }
+  .preview a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  .preview ul, .preview ol { color: var(--text-secondary); line-height: 1.75; padding-left: 24px; margin: 0 0 15px; }
+  .preview li { margin-bottom: 5px; }
+  .preview code { font-family: var(--mono); font-size: 12.5px; background: var(--bg-elevated);
+    padding: 2px 6px; border-radius: 5px; color: #d6bcfa; border: 1px solid var(--border-soft); }
+  .preview .codefig { position: relative; margin: 0 0 16px; }
+  .preview .codelang { position: absolute; top: 8px; right: 10px; font-family: var(--mono);
+    font-size: 10px; text-transform: uppercase; letter-spacing: .05em; color: var(--text-muted); opacity: .7; }
+  .preview pre { background: var(--bg-sunken); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 0; overflow-x: auto; margin: 0; }
+  .preview pre code { display: grid; counter-reset: line; background: none; border: 0; padding: 0;
+    color: var(--text); font-size: 12.5px; line-height: 1.6; font-family: var(--mono); }
+  .preview pre code .cl { padding: 0 16px; }
+  .preview pre code .cl::before { counter-increment: line; content: counter(line);
+    display: inline-block; width: 1.4em; margin-right: 1em; text-align: right; color: var(--text-muted); opacity: .45; user-select: none; }
+  .preview blockquote { border-left: 3px solid var(--accent); margin: 0 0 16px; padding: 4px 0 4px 16px;
+    color: var(--text-muted); font-style: italic; }
+  .preview table { border-collapse: collapse; width: 100%; margin: 0 0 16px; font-size: 13px; }
+  .preview th, .preview td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; }
+  .preview th { background: var(--bg-elevated); font-weight: 600; }
+  .preview hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
+  .preview img { max-width: 100%; border-radius: 8px; }
+  .preview .empty { color: var(--text-muted); font-style: italic; }
+
+  /* SEO panel (in preview head as a drawer) */
+  .seo { background: var(--bg-sunken); border-bottom: 1px solid var(--border-soft); flex-shrink: 0;
+    padding: 0; max-height: 0; overflow: hidden; transition: max-height .25s ease; }
+  .seo.open { max-height: 360px; overflow-y: auto; }
+  .seo-inner { padding: 12px 16px; }
+  .seo-score { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .seo-ring { font-size: 22px; font-weight: 800; }
+  .seo-bar { flex: 1; height: 8px; background: var(--bg-elevated); border-radius: 99px; overflow: hidden; }
+  .seo-bar > div { height: 100%; transition: width .3s, background .3s; border-radius: 99px; }
+  .seo-item { font-size: 12px; display: flex; align-items: flex-start; gap: 7px; padding: 3px 0; line-height: 1.4; }
+  .seo-item .ic { flex-shrink: 0; width: 14px; }
+  .seo-item.ok { color: var(--text-secondary); }
+  .seo-item.warn { color: var(--warn); }
+  .seo-item.err { color: var(--danger); }
+  .seo-item .ic.ok { color: var(--success); }
+
+  #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--bg-elevated); border: 1px solid var(--accent); color: var(--text);
+    padding: 11px 20px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    opacity: 0; pointer-events: none; transition: all .25s; z-index: 100; box-shadow: 0 8px 30px rgba(0,0,0,.5); }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 1100px) {
+    .details-inner { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .field.span2 { grid-column: span 2; }
+    .field.span4 { grid-column: 1 / -1; }
+  }
+  @media (max-width: 1000px) { .col-preview { display: none; } }
+  @media (max-width: 700px) {
+    .details-inner { grid-template-columns: 1fr; }
+    .field.span2, .field.span4 { grid-column: 1 / -1; }
+    .details { max-height: 55vh; }
+  }
+</style>
+</head>
+<body>
+  <header>
+    <div class="brand">CH<span>Ops</span> Blog Editor</div>
+    <div class="spacer"></div>
+    <button class="btn btn-ghost" id="btnSeo">SEO: <span id="seoBadge">-</span></button>
+    <button class="btn btn-ghost" id="btnSample">Load sample</button>
+    <button class="btn btn-ghost" id="btnOpen" style="display:none">Open existing</button>
+    <button class="btn btn-ghost" id="btnImport">Import .md</button>
+    <button class="btn" id="btnCopy">Copy markdown</button>
+    <button class="btn btn-primary" id="btnSave">Save to blog</button>
+    <input type="file" id="fileInput" accept=".md,.markdown,text/markdown" style="display:none" />
+  </header>
+
+  <!-- POST DETAILS (full width, top, collapsible) -->
+  <div class="details" id="details">
+    <button class="details-toggle" id="detailsToggle" aria-expanded="true">
+      <span class="chev" id="detailsChev">▾</span>
+      Post details
+      <span class="details-summary" id="detailsSummary"></span>
+    </button>
+    <div class="details-inner" id="detailsBody">
+      <div class="field">
+        <label for="f-title">Title <span class="opt">(required, ≤60)</span></label>
+        <input type="text" id="f-title" placeholder="How BlancoByte keeps your data private" />
+        <div class="counter" id="c-title">0 / 60</div>
+      </div>
+      <div class="field span2">
+        <label for="f-desc">Description <span class="opt">(required, ≤160)</span></label>
+        <textarea id="f-desc" placeholder="A one-sentence summary for search results and social previews."></textarea>
+        <div class="counter" id="c-desc">0 / 160</div>
+      </div>
+      <div class="field">
+        <label for="f-tags">Tags <span class="opt">(2-4, comma sep)</span></label>
+        <input type="text" id="f-tags" placeholder="mongodb, performance, privacy" />
+        <div class="hint">Lowercase. e.g. mongodb, performance</div>
+      </div>
+
+      <div class="field">
+        <label for="f-date">Date <span class="opt">(required)</span></label>
+        <input type="date" id="f-date" />
+      </div>
+      <div class="field">
+        <label for="f-author">Author <span class="opt">(optional)</span></label>
+        <input type="text" id="f-author" list="author-list" placeholder="BlancoByte" />
+        <datalist id="author-list"></datalist>
+        <div class="hint" id="authorHint"></div>
+      </div>
+      <div class="field">
+        <label for="f-authorurl">Author LinkedIn <span class="opt">(auto-fills for known authors)</span></label>
+        <input type="text" id="f-authorurl" placeholder="https://linkedin.com/in/username" />
+      </div>
+      <div class="field">
+        <label for="f-image">Cover image <span class="opt">(URL or local)</span></label>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="f-image" placeholder="/blog/images/cover.webp or https://..." style="flex:1;min-width:0;" />
+          <button type="button" class="btn btn-ghost" id="btnPickCover" style="height:38px;padding:0 12px;flex-shrink:0;">Pick</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Options</label>
+        <div class="check">
+          <input type="checkbox" id="f-draft" />
+          <label for="f-draft">Draft (hidden on live site)</label>
+        </div>
+      </div>
+
+      <div class="field span4">
+        <label for="f-slug">Filename / URL slug</label>
+        <input type="text" id="f-slug" placeholder="auto from title" />
+        <div class="slug-preview" id="slugPreview">content/blog/&hellip;.md</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="col col-editor">
+      <div class="col-head">Body (Markdown)
+        <span class="right" id="wordCount">0 words</span>
+      </div>
+      <div class="toolbar" id="toolbar">
+        <button class="tb" data-act="h2" title="Heading 2">H2</button>
+        <button class="tb" data-act="h3" title="Heading 3">H3</button>
+        <div class="tb-sep"></div>
+        <button class="tb" data-act="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+        <button class="tb" data-act="italic" title="Italic (Ctrl+I)"><i>I</i></button>
+        <button class="tb" data-act="code" title="Inline code">&lt;/&gt;</button>
+        <div class="tb-sep"></div>
+        <button class="tb" data-act="ul" title="Bullet list">&bull;</button>
+        <button class="tb" data-act="ol" title="Numbered list">1.</button>
+        <button class="tb" data-act="quote" title="Blockquote">&ldquo;</button>
+        <div class="tb-sep"></div>
+        <button class="tb" data-act="link" title="Link (Ctrl+K)">Link</button>
+        <button class="tb" data-act="image" title="Image">Img</button>
+        <button class="tb" data-act="codeblock" title="Code block">{ }</button>
+        <button class="tb" data-act="table" title="Table">Tbl</button>
+        <button class="tb" data-act="hr" title="Divider">&mdash;</button>
+      </div>
+      <textarea class="editor-area" id="editor" spellcheck="true" placeholder="Write your post here. Use the toolbar or type Markdown directly.
+
+## A section heading
+
+A paragraph of text. Leave a blank line between paragraphs."></textarea>
+    </div>
+
+    <div class="col col-preview">
+      <div class="col-head">Live preview
+        <span class="right" id="readTime"></span>
+      </div>
+      <div class="seo" id="seoPanel">
+        <div class="seo-inner">
+          <div class="seo-score">
+            <div class="seo-ring" id="seoRing">0/10</div>
+            <div class="seo-bar"><div id="seoBarFill" style="width:0%"></div></div>
+          </div>
+          <div id="seoItems"></div>
+        </div>
+      </div>
+      <div class="preview" id="preview"></div>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+<script>
+function escapeHtml(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function renderInline(s){
+  const codes=[];
+  s=s.replace(/`([^`]+)`/g,(m,c)=>{codes.push(c);return "\u0000"+(codes.length-1)+"\u0000";});
+  s=escapeHtml(s);
+  s=s.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g,'<img src="$2" alt="$1">');
+  s=s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+  s=s.replace(/\*\*\*([^*]+)\*\*\*/g,'<strong><em>$1</em></strong>');
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
+  s=s.replace(/\*([^*]+)\*/g,'<em>$1</em>');
+  s=s.replace(/\u0000(\d+)\u0000/g,(m,i)=>'<code>'+escapeHtml(codes[+i])+'</code>');
+  return s;
+}
+function renderMarkdown(md){
+  const lines=md.replace(/\r\n/g,"\n").split("\n"); let html="", i=0;
+  while(i<lines.length){
+    let line=lines[i];
+    const fence=line.match(/^```(\w*)\s*$/);
+    if(fence){ const lang=fence[1]||""; let buf=[]; i++;
+      while(i<lines.length && !/^```\s*$/.test(lines[i])){ buf.push(lines[i]); i++; } i++;
+      const numbered=buf.map(l=>'<span class="cl">'+escapeHtml(l||" ")+'</span>').join("\n");
+      html+='<figure class="codefig">'+(lang?'<span class="codelang">'+escapeHtml(lang)+'</span>':'')+
+            '<pre><code class="lang-'+lang+'">'+numbered+'</code></pre></figure>'; continue; }
+    let m;
+    if(m=line.match(/^####\s+(.*)$/)){ html+='<h4>'+renderInline(m[1])+'</h4>'; i++; continue; }
+    if(m=line.match(/^###\s+(.*)$/)){ html+='<h3>'+renderInline(m[1])+'</h3>'; i++; continue; }
+    if(m=line.match(/^##\s+(.*)$/)){ html+='<h2>'+renderInline(m[1])+'</h2>'; i++; continue; }
+    if(m=line.match(/^#\s+(.*)$/)){ html+='<h2>'+renderInline(m[1])+'</h2>'; i++; continue; }
+    if(/^---+\s*$/.test(line)){ html+='<hr>'; i++; continue; }
+    if(/^>\s?/.test(line)){ let buf=[]; while(i<lines.length && /^>\s?/.test(lines[i])){ buf.push(lines[i].replace(/^>\s?/,"")); i++; }
+      html+='<blockquote>'+renderInline(buf.join(" "))+'</blockquote>'; continue; }
+    if(/^\|(.+)\|\s*$/.test(line) && i+1<lines.length && /^\|?[\s:-]*\|[\s:|-]*$/.test(lines[i+1])){
+      const header=line.replace(/^\||\|$/g,"").split("|").map(c=>c.trim()); i+=2; let rows=[];
+      while(i<lines.length && /^\|(.+)\|\s*$/.test(lines[i])){ rows.push(lines[i].replace(/^\||\|$/g,"").split("|").map(c=>c.trim())); i++; }
+      let t='<table><thead><tr>'+header.map(h=>'<th>'+renderInline(h)+'</th>').join("")+'</tr></thead><tbody>';
+      rows.forEach(r=>{ t+='<tr>'+r.map(c=>'<td>'+renderInline(c)+'</td>').join("")+'</tr>'; }); t+='</tbody></table>'; html+=t; continue; }
+    if(/^\s*[-*]\s+/.test(line)){ let buf=[]; while(i<lines.length && /^\s*[-*]\s+/.test(lines[i])){
+        const indent=(lines[i].match(/^(\s*)/)[1]||"").length; buf.push({indent, text:lines[i].replace(/^\s*[-*]\s+/,"")}); i++; }
+      html+=buildList(buf,"ul"); continue; }
+    if(/^\s*\d+\.\s+/.test(line)){ let buf=[]; while(i<lines.length && /^\s*\d+\.\s+/.test(lines[i])){
+        const indent=(lines[i].match(/^(\s*)/)[1]||"").length; buf.push({indent, text:lines[i].replace(/^\s*\d+\.\s+/,"")}); i++; }
+      html+=buildList(buf,"ol"); continue; }
+    if(/^\s*$/.test(line)){ i++; continue; }
+    let buf=[line]; i++;
+    while(i<lines.length && !/^\s*$/.test(lines[i]) && !/^(#{1,4}\s|>|\s*[-*]\s+|\s*\d+\.\s+|```|\|)/.test(lines[i]) && !/^---+\s*$/.test(lines[i])){ buf.push(lines[i]); i++; }
+    html+='<p>'+renderInline(buf.join(" "))+'</p>';
+  }
+  return html;
+}
+function buildList(items,type){ let html="<"+type+">"; let i=0;
+  while(i<items.length){ const cur=items[i]; let inner=renderInline(cur.text);
+    if(i+1<items.length && items[i+1].indent>cur.indent){ let sub=[]; const base=items[i+1].indent; i++;
+      while(i<items.length && items[i].indent>=base){ sub.push(items[i]); i++; }
+      html+="<li>"+inner+buildList(sub,type)+"</li>"; continue; }
+    html+="<li>"+inner+"</li>"; i++; } html+="</"+type+">"; return html; }
+
+const $=id=>document.getElementById(id);
+const editor=$("editor"), preview=$("preview");
+const fTitle=$("f-title"), fDesc=$("f-desc"), fDate=$("f-date"), fAuthor=$("f-author"),
+      fAuthorUrl=$("f-authorurl"),
+      fImage=$("f-image"), fTags=$("f-tags"), fDraft=$("f-draft"), fSlug=$("f-slug");
+
+/* Keep this in sync with src/lib/authors.ts. When the author name matches a key
+   here, the site links it to LinkedIn automatically (and the editor auto-fills
+   the URL). Names not listed render as plain text. */
+const authorLinks = {
+  "Reshma M": "https://www.linkedin.com/in/reshmamuthu/",
+  "Sanjeev Kumar G": "https://www.linkedin.com/in/sanjeevkumarg03/",
+  "Gayathri M": "https://www.linkedin.com/in/gayathri-meganathan-74bb66269/",
+  "Kanishga Subramani": "https://www.linkedin.com/in/kanishga-subramani-933805357/",
+  "Mohamed Hussain S": "https://www.linkedin.com/in/hussainmohhdd/",
+  "Ravivarman R": "https://www.linkedin.com/in/ravivarmanr/"
+};
+// Populate the author datalist
+(function(){
+  const dl=$("author-list");
+  if(dl){ dl.innerHTML=Object.keys(authorLinks).map(n=>'<option value="'+n+'"></option>').join(""); }
+})();
+// Resolve the LinkedIn URL for an author name (explicit URL field wins).
+function resolveAuthorUrl(){
+  const explicit=fAuthorUrl.value.trim();
+  if(explicit) return explicit;
+  return authorLinks[fAuthor.value.trim()] || "";
+}
+// When a known author is picked and no URL is set, auto-fill it.
+fAuthor.addEventListener("input",()=>{
+  const known=authorLinks[fAuthor.value.trim()];
+  const hint=$("authorHint");
+  if(known && !fAuthorUrl.value.trim()){ fAuthorUrl.value=known; }
+  if(hint){
+    const name=fAuthor.value.trim();
+    if(!name||name==="BlancoByte"||name==="Podman"){ hint.textContent="Renders as plain text (not linked)."; }
+    else if(authorLinks[name]||fAuthorUrl.value.trim()){ hint.textContent="Linked to LinkedIn on the site."; }
+    else { hint.textContent="Unknown author: renders as plain text unless you add a LinkedIn URL."; }
+  }
+  sync();
+});
+fDate.value=new Date().toISOString().slice(0,10);
+
+function slugify(s){ return s.toLowerCase().replace(/®|™|©/g,"").replace(/[^a-z0-9\s-]/g,"").trim().replace(/\s+/g,"-").replace(/-+/g,"-"); }
+let slugEdited=false;
+fSlug.addEventListener("input",()=>{ slugEdited=true; fSlug.value=slugify(fSlug.value); updateSlug(); });
+function updateSlug(){ let slug = slugEdited && fSlug.value ? fSlug.value : slugify(fTitle.value);
+  if(!slugEdited) fSlug.value=slug; $("slugPreview").textContent = "content/blog/"+(slug||"…")+".md"; }
+
+function counter(el,countEl,max){ const n=el.value.length; countEl.textContent=n+" / "+max;
+  countEl.className="counter"+(n>max?" bad":n>max*0.9?" warn":""); }
+function tagList(){ return fTags.value.split(",").map(t=>t.trim().toLowerCase()).filter(Boolean); }
+function bodyWordCount(){ return editor.value.trim().split(/\s+/).filter(Boolean).length; }
+
+function buildPreview(){
+  let h="";
+  if(fImage.value.trim()) h+='<img class="preview-cover" src="'+escapeHtml(fImage.value.trim())+'" alt="cover" onerror="this.style.display=\'none\'">';
+  h+='<h1 class="post-title">'+(fTitle.value?escapeHtml(fTitle.value):'<span class="empty">Untitled post</span>')+'</h1>';
+  const author=fAuthor.value.trim()||"BlancoByte";
+  const authorHref=resolveAuthorUrl();
+  const dateStr=fDate.value?new Date(fDate.value+"T00:00:00").toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"}):"";
+  const authorHtml=authorHref
+    ? '<a href="'+escapeHtml(authorHref)+'" target="_blank" rel="noopener" style="color:var(--accent)">'+escapeHtml(author)+'</a>'
+    : '<span>'+escapeHtml(author)+'</span>';
+  h+='<div class="post-meta">'+authorHtml+(dateStr?" · "+dateStr:"")+(fDraft.checked?' · <span style="color:var(--warn)">DRAFT</span>':'')+'</div>';
+  const tags=tagList();
+  if(tags.length) h+='<div class="post-tags">'+tags.map(t=>'<span>'+escapeHtml(t)+'</span>').join("")+'</div>';
+  const body=editor.value.trim();
+  h+= body?renderMarkdown(body):'<p class="empty">Your formatted post will appear here as you type.</p>';
+  preview.innerHTML=h;
+  const wc=bodyWordCount();
+  $("wordCount").textContent=wc+" word"+(wc===1?"":"s");
+  $("readTime").textContent=wc?Math.max(1,Math.round(wc/220))+" min read":"";
+}
+
+/* ---------- SEO scoring ---------- */
+function seoChecks(){
+  const wc=bodyWordCount();
+  const body=editor.value;
+  const h2=(body.match(/^##\s+/gm)||[]).length;
+  const headings=(body.match(/^#{2,4}\s+/gm)||[]).length;
+  const links=(body.match(/\[[^\]]+\]\([^)]+\)/g)||[]).length;
+  const internalLinks=(body.match(/\]\(\//g)||[]).length;
+  const tags=tagList();
+  const titleLen=fTitle.value.trim().length;
+  const descLen=fDesc.value.trim().length;
+  // keyword presence: do first 2 tags' words appear in title / first paragraph?
+  const firstPara=(body.trim().split(/\n\s*\n/)[0]||"").toLowerCase();
+  const titleLc=fTitle.value.toLowerCase();
+  const kw=tags[0]? tags[0].split("-")[0] : "";
+  const kwInTitle = kw && titleLc.includes(kw);
+  const kwInIntro = kw && firstPara.includes(kw);
+
+  const checks=[
+    { label: titleLen===0?"Add a title":(titleLen<=60?"Title is set and within 60 characters ("+titleLen+")":"Title is "+titleLen+" chars - shorten to ≤60"),
+      state: titleLen===0?"err":(titleLen<=60?"ok":"warn"), weight:1, pass: titleLen>0 && titleLen<=60 },
+    { label: descLen===0?"Add a meta description":(descLen>=70&&descLen<=160?"Description length is ideal ("+descLen+")":descLen>160?"Description is "+descLen+" chars - shorten to ≤160":"Description is short ("+descLen+") - aim for 70-160"),
+      state: descLen===0?"err":(descLen>=70&&descLen<=160?"ok":"warn"), weight:1, pass: descLen>0 && descLen<=160 },
+    { label: tags.length>=2&&tags.length<=4?"Tag count is good ("+tags.length+")":tags.length===0?"Add 2-4 tags":"Use 2-4 tags (have "+tags.length+")",
+      state: tags.length>=2&&tags.length<=4?"ok":(tags.length===0?"err":"warn"), weight:1, pass: tags.length>=2&&tags.length<=4 },
+    { label: fImage.value.trim()?"Cover image set (Open Graph / social preview)":"Add a cover image for social sharing",
+      state: fImage.value.trim()?"ok":"warn", weight:1, pass: !!fImage.value.trim() },
+    { label: wc>=800&&wc<=2200?"Body length is in range ("+wc+" words)":wc<800?"Body is "+wc+" words - aim for 800+":"Body is long ("+wc+") - consider splitting",
+      state: wc>=800&&wc<=2200?"ok":(wc<300?"err":"warn"), weight:1.5, pass: wc>=800 },
+    { label: h2>=2?h2+" H2 sections - good structure":"Add more ## sections (have "+h2+", aim for 2+)",
+      state: h2>=2?"ok":(h2===0?"err":"warn"), weight:1, pass: h2>=2 },
+    { label: headings>=1 && wc>0 && (wc/Math.max(headings,1))<=350 ? "Headings spaced well for scannability" : "Add a heading roughly every 300 words",
+      state: headings>=1 && (wc/Math.max(headings,1))<=350 ?"ok":"warn", weight:0.5, pass: headings>=1 && (wc/Math.max(headings,1))<=350 },
+    { label: links>=1?links+" link(s) in body":"Add at least one link (internal or external)",
+      state: links>=1?"ok":"warn", weight:1, pass: links>=1 },
+    { label: internalLinks>=1?"Internal link to another BlancoByte page":"Link to a BlancoByte page (/...)",
+      state: internalLinks>=1?"ok":"warn", weight:0.5, pass: internalLinks>=1 },
+    { label: kwInTitle?"Primary keyword appears in the title":"Put your main keyword in the title",
+      state: kwInTitle?"ok":"warn", weight:0.5, pass: kwInTitle },
+    { label: kwInIntro?"Primary keyword appears in the first paragraph":"Use your main keyword in the first paragraph",
+      state: kwInIntro?"ok":"warn", weight:0.5, pass: kwInIntro },
+  ];
+  return checks;
+}
+function renderSeo(){
+  const checks=seoChecks();
+  const totalW=checks.reduce((a,c)=>a+c.weight,0);
+  const gotW=checks.reduce((a,c)=>a+(c.pass?c.weight:0),0);
+  const score=Math.round((gotW/totalW)*10*10)/10; // one decimal out of 10
+  const pct=Math.round((gotW/totalW)*100);
+  $("seoRing").textContent=score+"/10";
+  $("seoBadge").textContent=score+"/10";
+  const fill=$("seoBarFill"); fill.style.width=pct+"%";
+  const color = pct>=85?"var(--success)":pct>=60?"var(--warn)":"var(--danger)";
+  fill.style.background=color;
+  $("seoRing").style.color=color;
+  $("seoBadge").style.color=color;
+  $("seoItems").innerHTML=checks.map(c=>
+    '<div class="seo-item '+c.state+'"><span class="ic '+(c.pass?"ok":"")+'">'+(c.pass?"✓":(c.state==="err"?"✗":"!"))+'</span><span>'+c.label+'</span></div>'
+  ).join("");
+}
+
+function buildFile(){
+  const esc=s=>s.replace(/"/g,'\\"');
+  let fm="---\n";
+  fm+='title: "'+esc(fTitle.value.trim())+'"\n';
+  fm+='description: "'+esc(fDesc.value.trim())+'"\n';
+  fm+='date: "'+fDate.value+'"\n';
+  const author=fAuthor.value.trim(); if(author) fm+='author: "'+esc(author)+'"\n';
+  const authorUrl=fAuthorUrl.value.trim(); if(authorUrl) fm+='authorUrl: "'+esc(authorUrl)+'"\n';
+  const image=fImage.value.trim(); if(image) fm+='image: "'+esc(image)+'"\n';
+  const tags=tagList(); if(tags.length) fm+='tags: ['+tags.map(t=>'"'+esc(t)+'"').join(", ")+']\n';
+  if(fDraft.checked) fm+='draft: true\n';
+  fm+="---\n\n";
+  return fm+editor.value.trim()+"\n";
+}
+function currentSlug(){ return (slugEdited && fSlug.value ? fSlug.value : slugify(fTitle.value)) || "untitled-post"; }
+
+/* toolbar */
+function surround(before,after,placeholder){ const s=editor.selectionStart, e=editor.selectionEnd;
+  const sel=editor.value.slice(s,e)||placeholder||""; editor.setRangeText(before+sel+after,s,e,"end"); editor.focus(); sync(); }
+function linePrefix(prefix){ const s=editor.selectionStart; const val=editor.value;
+  let lineStart=val.lastIndexOf("\n",s-1)+1; editor.setRangeText(prefix,lineStart,lineStart,"end"); editor.focus(); sync(); }
+function insertBlock(text){ const s=editor.selectionStart, e=editor.selectionEnd; let pre=editor.value.slice(0,s);
+  let prefix = pre.length ? (pre.endsWith("\n") ? "\n" : "\n\n") : ""; editor.setRangeText(prefix+text+"\n",s,e,"end"); editor.focus(); sync(); }
+const actions={
+  h2:()=>linePrefix("## "), h3:()=>linePrefix("### "),
+  bold:()=>surround("**","**","bold text"), italic:()=>surround("*","*","italic text"), code:()=>surround("`","`","code"),
+  ul:()=>linePrefix("- "), ol:()=>linePrefix("1. "), quote:()=>linePrefix("> "),
+  link:()=>{const url=prompt("Link URL:","https://");if(url)surround("[","]("+url+")","link text");},
+  image:()=>pickImage(),
+  codeblock:()=>{const lang=prompt("Language (sql, bash, json...):","sql")||"";insertBlock("```"+lang+"\n\n```");},
+  table:()=>insertBlock("| Column A | Column B |\n|---|---|\n| Cell 1 | Cell 2 |\n| Cell 3 | Cell 4 |"),
+  hr:()=>insertBlock("---")
+};
+$("toolbar").addEventListener("click",ev=>{ const b=ev.target.closest(".tb"); if(!b)return; const act=b.dataset.act; if(actions[act]) actions[act](); });
+editor.addEventListener("keydown",e=>{ if(e.ctrlKey||e.metaKey){
+  if(e.key==="b"){e.preventDefault();actions.bold();} if(e.key==="i"){e.preventDefault();actions.italic();} if(e.key==="k"){e.preventDefault();actions.link();} }});
+
+/* Collapsible post details */
+$("detailsToggle").addEventListener("click",()=>{
+  const d=$("details"); const collapsed=d.classList.toggle("collapsed");
+  $("detailsToggle").setAttribute("aria-expanded", String(!collapsed));
+  updateDetailsSummary();
+});
+function updateDetailsSummary(){
+  const d=$("details");
+  if(!d.classList.contains("collapsed")){ $("detailsSummary").textContent=""; return; }
+  const t=fTitle.value.trim()||"Untitled post";
+  const tags=tagList();
+  $("detailsSummary").textContent = t + (tags.length? "  ·  "+tags.join(", ") : "");
+}
+
+function sync(){ counter(fTitle,$("c-title"),60); counter(fDesc,$("c-desc"),160); updateSlug(); buildPreview(); renderSeo(); updateDetailsSummary(); }
+[fTitle,fDesc,fDate,fAuthor,fAuthorUrl,fImage,fTags,fDraft,editor].forEach(el=>{ el.addEventListener("input",sync); el.addEventListener("change",sync); });
+
+/* Running over the local server? Then we can write straight to content/blog/. */
+const SERVED = location.protocol === "http:" || location.protocol === "https:";
+
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2400); }
+$("btnSeo").addEventListener("click",()=>$("seoPanel").classList.toggle("open"));
+$("btnCopy").addEventListener("click",async()=>{
+  if(!fTitle.value.trim()||!fDesc.value.trim()){ toast("Title and description are required"); return; }
+  try{ await navigator.clipboard.writeText(buildFile()); toast("Markdown copied to clipboard"); } catch{ toast("Copy failed - select & copy manually"); } });
+
+function requiredOk(){
+  if(!fTitle.value.trim()||!fDesc.value.trim()||!fDate.value||!editor.value.trim()){
+    toast("Title, description, date and body are required"); return false; }
+  return true;
+}
+
+function downloadFile(){
+  const blob=new Blob([buildFile()],{type:"text/markdown"}); const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob); a.download=currentSlug()+".md"; a.click(); URL.revokeObjectURL(a.href);
+  toast("Downloaded "+currentSlug()+".md");
+}
+
+async function saveToBlog(overwrite){
+  const slug=currentSlug();
+  try{
+    const res=await fetch("/api/save",{ method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ slug, content: buildFile(), overwrite: !!overwrite }) });
+    const data=await res.json().catch(()=>({}));
+    if(res.status===409){
+      if(confirm(slug+".md already exists. Overwrite it?")) return saveToBlog(true);
+      return;
+    }
+    if(!res.ok){ toast(data.error||"Save failed"); return; }
+    toast((data.overwritten?"Updated ":"Saved ")+data.path);
+  }catch(err){
+    toast("Server not reachable - downloading instead");
+    downloadFile();
+  }
+}
+
+$("btnSave").addEventListener("click",()=>{
+  if(!requiredOk()) return;
+  if(SERVED) saveToBlog(false); else downloadFile();
+});
+$("btnImport").addEventListener("click",()=>$("fileInput").click());
+$("fileInput").addEventListener("change",e=>{ const file=e.target.files[0]; if(!file)return; const r=new FileReader();
+  r.onload=()=>{ parseFile(r.result); e.target.value=""; }; r.readAsText(file); });
+function parseFile(text){ text=text.replace(/\r\n/g,"\n"); const m=text.match(/^---\n([\s\S]*?)\n---\n?/); let body=text, fm="";
+  if(m){ fm=m[1]; body=text.slice(m[0].length); }
+  const get=k=>{ const r=fm.match(new RegExp("^"+k+':\\s*(.*)$',"m")); return r?r[1].trim():""; };
+  const unq=s=>s.replace(/^"(.*)"$/,"$1").replace(/\\"/g,'"');
+  if(fm){ fTitle.value=unq(get("title")); fDesc.value=unq(get("description"));
+    const d=unq(get("date")); if(/^\d{4}-\d{2}-\d{2}$/.test(d)) fDate.value=d;
+    fAuthor.value=unq(get("author")); fAuthorUrl.value=unq(get("authorUrl")); fImage.value=unq(get("image"));
+    const tg=get("tags").match(/"[^"]*"/g); fTags.value=tg?tg.map(t=>t.replace(/"/g,"")).join(", "):"";
+    fDraft.checked=/^draft:\s*true/m.test(fm); }
+  editor.value=body.trim(); slugEdited=false; sync(); toast("Imported"); }
+$("btnSample").addEventListener("click",()=>{
+  fTitle.value="How to Keep Your Analytics Inside Your Own Network";
+  fDesc.value="A short guide to running BlancoByte analytics on your own infrastructure, so your data never leaves your network.";
+  fAuthor.value="BlancoByte"; fAuthorUrl.value=authorLinks["BlancoByte"]||"";
+  fImage.value="";
+  fTags.value="privacy, deployment, getting-started"; fDraft.checked=false; slugEdited=false;
+  editor.value=`BlancoByte runs entirely inside your own network. Your data never leaves the boundaries you control. This guide shows the basic setup.
+
+## What you need
+
+- Your own server or cloud environment
+- Access to the databases you want to analyse
+- A few minutes to connect them
+
+## Step 1: Deploy
+
+Install BlancoByte on your own infrastructure. Nothing is sent to a third party, and no data is copied out.
+
+> Everything stays in your network. You stay in control.
+
+## Step 2: Connect your data
+
+Point BlancoByte at your databases. It reads from them in place, so there is no export step.
+
+## Step 3: Ask questions
+
+Query and chart your data in real time, in plain language or SQL. For hands on help, see our [consulting page](/consulting).
+
+## Wrapping up
+
+With BlancoByte deployed in your own network, you get private, real time insight without giving your data away.`;
+  sync(); toast("Sample loaded"); });
+/* Image picker: lists local /blog/images/* (when served) or accepts a URL/path */
+let localImages=null;
+async function loadLocalImages(){
+  if(localImages!==null) return localImages;
+  if(!SERVED){ localImages=[]; return localImages; }
+  try{ const r=await fetch("/api/images"); const d=await r.json(); localImages=d.images||[]; }
+  catch{ localImages=[]; }
+  return localImages;
+}
+async function chooseImagePath(forCover){
+  const imgs=await loadLocalImages();
+  let msg="Enter an image URL, or a local path like /blog/images/your-image.jpg";
+  if(imgs.length){
+    msg="Local images in public/blog/images/:\n\n"+imgs.map((p,i)=>(i+1)+". "+p.replace("/blog/images/",""))+
+        "\n\nEnter a number to pick one, or paste an image URL / local path.";
+  } else {
+    msg="No images found in public/blog/images/.\n\nPaste an image URL, or add files to public/blog/images/ and reference them as /blog/images/name.jpg";
+  }
+  const ans=prompt(msg, forCover?"":"/blog/images/");
+  if(!ans) return null;
+  const num=parseInt(ans,10);
+  if(imgs.length && !isNaN(num) && num>=1 && num<=imgs.length && String(num)===ans.trim()){
+    return imgs[num-1];
+  }
+  return ans.trim();
+}
+async function pickImage(){
+  const path=await chooseImagePath(false);
+  if(!path) return;
+  const alt=prompt("Alt text (describe the image for accessibility):","")||"";
+  insertBlock("!["+alt+"]("+path+")");
+}
+document.getElementById("btnPickCover").addEventListener("click",async()=>{
+  const path=await chooseImagePath(true);
+  if(path){ fImage.value=path; sync(); }
+});
+
+
+async function initServerMode(){
+  if(!SERVED) {
+    $("btnSave").textContent="Download .md";
+    return;
+  }
+  $("btnSave").textContent="Save to blog";
+  $("btnOpen").style.display="";
+  $("btnOpen").addEventListener("click",async()=>{
+    try{
+      const res=await fetch("/api/list"); const data=await res.json();
+      if(!data.posts || !data.posts.length){ toast("No posts found in content/blog/"); return; }
+      const list=data.posts.map((f,i)=>(i+1)+". "+f).join("\n");
+      const pick=prompt("Open which post? Enter the number:\n\n"+list);
+      if(!pick) return;
+      const idx=parseInt(pick,10)-1;
+      if(isNaN(idx)||idx<0||idx>=data.posts.length){ toast("Invalid choice"); return; }
+      const slug=data.posts[idx].replace(/\.md$/,"");
+      const r=await fetch("/api/load?slug="+encodeURIComponent(slug));
+      const d=await r.json();
+      if(!r.ok){ toast(d.error||"Load failed"); return; }
+      parseFile(d.content);
+      fSlug.value=slug; slugEdited=true; updateSlug();
+      toast("Opened "+slug+".md");
+    }catch{ toast("Could not reach server"); }
+  });
+}
+initServerMode();
+
+sync();</script>
+</body>
+</html>
