@@ -71,7 +71,7 @@ function blocksHtml(blocks: EmailBlock[]): string {
       <div style="margin-top:18px;padding:16px;background:${BRAND.elevated};border:1px solid ${BRAND.border};border-radius:10px;">
         <p style="margin:0 0 8px;font-weight:700;color:${BRAND.textMuted};font-size:12px;text-transform:uppercase;letter-spacing:0.05em;">${esc(b.label)}</p>
         <p style="margin:0;color:${BRAND.textSecondary};font-size:14px;line-height:1.6;white-space:pre-wrap;${b.mono ? `font-family:${BRAND.mono};word-break:break-all;background:${BRAND.canvas};padding:12px;border-radius:6px;border:1px solid ${BRAND.border};` : ""}">${esc(b.text)}</p>
-      </div>`
+      </div>`,
     )
     .join("");
 }
@@ -104,7 +104,7 @@ export function renderBusinessEmail({
         <!-- Header -->
         <tr>
           <td style="padding:22px 28px;background:linear-gradient(135deg, ${BRAND.accent} 0%, #6d28d9 100%);">
-            <span style="font-family:${BRAND.sans};font-size:22px;font-weight:800;letter-spacing:-0.02em;color:#ffffff;">CH<span style="color:#e9d5ff;">Ops</span></span>
+            <span style="font-family:${BRAND.sans};font-size:22px;font-weight:800;letter-spacing:-0.02em;color:#ffffff;">Blancobyte<span style="color:#e9d5ff;">Enquiry</span></span>
             <span style="float:right;color:rgba(255,255,255,0.85);font-size:12px;font-weight:600;padding-top:8px;">blancobyte.com</span>
           </td>
         </tr>
@@ -152,7 +152,12 @@ export function renderBusinessEmailText({
 
 /** Resolve the business recipient: dedicated env var, else the SMTP account. */
 export function businessRecipient(): string | undefined {
-  return process.env.CONTACT_EMAIL || process.env.BUSINESS_EMAIL || process.env.SMTP_EMAIL;
+  BRAND;
+  return (
+    process.env.CONTACT_EMAIL ||
+    process.env.BUSINESS_EMAIL ||
+    process.env.SMTP_EMAIL
+  );
 }
 
 export interface ConfirmationEmailOptions {
@@ -187,7 +192,7 @@ export function renderConfirmationEmail({
       <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:${BRAND.card};border:1px solid ${BRAND.border};border-radius:16px;overflow:hidden;font-family:${BRAND.sans};">
         <tr>
           <td style="padding:22px 28px;background:linear-gradient(135deg, ${BRAND.accent} 0%, #6d28d9 100%);">
-            <span style="font-family:${BRAND.sans};font-size:22px;font-weight:800;letter-spacing:-0.02em;color:#ffffff;">CH<span style="color:#e9d5ff;">Ops</span></span>
+            <span style="font-family:${BRAND.sans};font-size:22px;font-weight:800;letter-spacing:-0.02em;color:#ffffff;">Blancobyte<span style="color:#e9d5ff;">Enquiry</span></span>
             <span style="float:right;color:rgba(255,255,255,0.85);font-size:12px;font-weight:600;padding-top:8px;">blancobyte.com</span>
           </td>
         </tr>
