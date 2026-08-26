@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Turnstile } from "@marsidev/react-turnstile";
 
@@ -11,11 +11,18 @@ export function ContactForm() {
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const turnstileKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || "";
 
+
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     // Honeypot check
     if (honeypot) return;
+
+    if (!form?.email?.match("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")) {
+     
+      return
+    }
 
     setStatus("sending");
 
@@ -81,10 +88,12 @@ export function ContactForm() {
           <label htmlFor="email" className="mb-1.5 block text-sm font-semibold text-text-secondary">
             Work email <span className="text-danger">*</span>
           </label>
-          <input id="email" type="email" required value={form.email}
+
+            <input id="email"  type="email" required value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
             className="w-full rounded-lg border border-border-default bg-bg-elevated px-4 py-3 text-text-primary outline-none transition-all duration-200 focus:border-accent focus:shadow-[0_0_0_3px_rgba(46, 107, 245,0.15)]"
             placeholder="you@company.com" />
+    
         </div>
       </div>
 
@@ -132,7 +141,7 @@ export function ContactForm() {
 
       <p className="mt-5 text-sm text-text-muted">A copy of your message will be sent to your email address.</p>
 
-      <button type="submit" disabled={status === "sending" || (!!turnstileKey && !turnstileToken)}
+      <button type="submit" disabled={status === "sending" || (!!turnstileKey && !turnstileToken) || !form?.email?.match("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")}
         className="btn-primary mt-6 inline-flex items-center gap-2 rounded-xl bg-cta px-7 py-3.5 font-semibold text-[#0A1735] transition hover:bg-cta-hover glow-amber disabled:opacity-50 disabled:cursor-not-allowed"
         style={{ boxShadow: "0 4px 16px var(--color-accent-glow)" }}>
         {status === "sending" ? (

@@ -122,9 +122,9 @@ export function SiteSearch() {
       {/* Modal */}
       {open && (
         <div
-          className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[12vh]"
+          className="fixed inset-0 z-[100] flex items-start justify-center px-4 pt-[10%]"
         >
-          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" aria-hidden="true" onClick={() => setOpen(false)} />
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm h-screen" aria-hidden="true" onClick={() => setOpen(false)} />
           <div
             ref={panelRef}
             className="relative w-full max-w-xl overflow-hidden rounded-2xl border border-border-default shadow-2xl"
