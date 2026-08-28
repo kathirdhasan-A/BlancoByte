@@ -69,10 +69,7 @@ export function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="glass-card p-8 md:p-10" style={{ borderColor: "var(--color-accent-border)" }}>
-      <h3 className="text-xl font-bold text-text-primary">Book a Demo</h3>
-      <p className="mt-2 text-text-secondary">
-        Tell us about your data setup and we will reply within one business day.
-      </p>
+      <h3 className="text-xl font-bold text-text-primary">Contact Us</h3>
 
       <div className="mt-8 grid gap-5 md:grid-cols-2">
         <div>

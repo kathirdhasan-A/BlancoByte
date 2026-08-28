@@ -45,7 +45,7 @@ export default function ContactPage() {
                 <span className="text-cta"><Icon name="linkedin-fill" size={24} /></span>
                 <span>
                   <span className="block text-sm text-text-muted">LinkedIn</span>
-                  <span className="block font-medium text-text-primary">/company/blancobyte</span>
+                  <span className="block font-medium text-text-primary">Blancobyte</span>
                 </span>
               </a>
               <div className="glass-card flex items-center gap-4 p-5">

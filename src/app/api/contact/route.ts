@@ -47,8 +47,8 @@ export async function POST(req: NextRequest) {
       });
 
       const emailOpts = {
-        heading: "New demo request",
-        intro: `${name}${company ? ` from ${company}` : ""} requested a demo. Reply to this email to respond directly.`,
+        heading: "New Enquiry",
+        intro: `${name}${company ? ` from ${company}` : ""} submitted an enquiry. Reply to this email to respond directly.`,
         rows: [
           { label: "Name", value: name },
           { label: "Email", value: email, isEmail: true },
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       try {
         const confirmOpts = {
           name,
-          heading: "Thanks for requesting a demo",
+          heading: "Thanks for getting in touch",
           body: "We have received your demo request and a member of the team will get back to you shortly. If you need to add anything, just reply to this email.",
           blocks: [{ label: "Your message", text: message }],
         };

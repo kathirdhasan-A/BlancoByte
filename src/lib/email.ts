@@ -193,7 +193,7 @@ export function renderConfirmationEmail({
         <tr>
           <td style="padding:22px 28px;background:linear-gradient(135deg, ${BRAND.accent} 0%, #6d28d9 100%);">
             <span style="font-family:${BRAND.sans};font-size:22px;font-weight:800;letter-spacing:-0.02em;color:#ffffff;">Blancobyte<span style="color:#e9d5ff;margin-left:10px;">Enquiry</span></span>
-            <span style="float:right;color:rgba(255,255,255,0.85);font-size:12px;font-weight:600;padding-top:8px;">blancobyte.com</span>
+            <span style="float:right;color:#ffffff;font-size:12px;font-weight:600;padding-top:8px;">blancobyte.com</span>
           </td>
         </tr>
         <tr>
