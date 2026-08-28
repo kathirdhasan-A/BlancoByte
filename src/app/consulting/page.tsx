@@ -25,14 +25,14 @@ const trustedBy = [
 ];
 
 const stack = [
-  { name: "Google Cloud", tag: "Cloud", icon: "cloud-fill", body: "Scalable cloud infrastructure powering modern data solutions." },
-  { name: "StarRocks", tag: "Relational", icon: "table-2", body: "SQL engines for enterprise-scale analytics." },
-  { name: "Amazon AWS", tag: "Cloud", icon: "cloud-line", body: "Scalable cloud infrastructure for data workloads of any size." },
-  { name: "Kafka", tag: "Streaming", icon: "broadcast-fill", body: "Distributed event streaming for high-throughput, real-time pipelines." },
-  { name: "Elasticsearch", tag: "Search", icon: "search-eye-fill", body: "Full-text search and analytics at any scale." },
   { name: "ClickHouse", tag: "Analytics", icon: "flashlight-fill", body: "Blazing-fast OLAP queries on billions of rows." },
   { name: "MongoDB", tag: "NoSQL", icon: "braces-fill", body: "Flexible documents for rapidly evolving schemas." },
   { name: "Couchbase", tag: "NoSQL", icon: "hard-drive-2-fill", body: "Distributed NoSQL built for low-latency apps." },
+  { name: "StarRocks", tag: "Relational", icon: "table-2", body: "SQL engines for enterprise-scale analytics." },
+  { name: "Google Cloud", tag: "Cloud", icon: "cloud-fill", body: "Scalable cloud infrastructure powering modern data solutions." },
+  { name: "Amazon AWS", tag: "Cloud", icon: "cloud-line", body: "Scalable cloud infrastructure for data workloads of any size." },
+  { name: "Kafka", tag: "Streaming", icon: "broadcast-fill", body: "Distributed event streaming for high-throughput, real-time pipelines." },
+  { name: "Elasticsearch", tag: "Search", icon: "search-eye-fill", body: "Full-text search and analytics at any scale." },
 ];
 
 const expertise = [

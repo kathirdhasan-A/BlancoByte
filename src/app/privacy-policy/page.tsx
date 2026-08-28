@@ -75,10 +75,6 @@ export default function PrivacyPolicyPage() {
             ))}
           </div>
 
-          <p className="mt-12 rounded-lg p-4 text-xs leading-relaxed text-text-muted" style={{ background: "var(--color-bg-elevated)", border: "1px solid var(--color-border-default)" }}>
-            This policy is a starting template. Have it reviewed against your actual data practices
-            and local law before publishing.
-          </p>
         </div>
       </div>
     </section>
