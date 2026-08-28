@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
         const confirmOpts = {
           name,
           heading: "Thanks for getting in touch",
-          body: "We have received your demo request and a member of the team will get back to you shortly. If you need to add anything, just reply to this email.",
+          body: "We’ve received your enquiry and a member of our team will get back to you shortly. If you need to add anything in the meantime, just reply to this email.",
           blocks: [{ label: "Your message", text: message }],
         };
         await transporter.sendMail({
