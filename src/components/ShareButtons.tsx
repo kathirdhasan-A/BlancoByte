@@ -46,7 +46,7 @@ export function ShareButtons({ title, url }: { title: string; url: string }) {
         <a
           key={n.name}
           href={n.href}
-          target="_blank"
+          // target="_blank"
           rel="noopener noreferrer"
           aria-label={`Share on ${n.name}`}
           className="share-btn flex h-9 w-9 items-center justify-center rounded-full"
