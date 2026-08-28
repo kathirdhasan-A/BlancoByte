@@ -31,11 +31,11 @@ export interface DocsConfig {
 }
 
 const docsConfig: DocsConfig = {
-  owner: "blancobyte",
+  owner: "kathirdhasan-A",
   repo: "docs",
   title: "BlancoByte Docs",
   sidebarFile: "_sidebar.md",
-  enabled: false,
+  enabled: true,
   versions: [
     {
       label: "latest",
