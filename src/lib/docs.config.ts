@@ -32,7 +32,7 @@ export interface DocsConfig {
 
 const docsConfig: DocsConfig = {
   owner: "kathirdhasan-A",
-  repo: "docs",
+  repo: "BlancoByte",
   title: "BlancoByte Docs",
   sidebarFile: "_sidebar.md",
   enabled: true,
